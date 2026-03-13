@@ -40,45 +40,20 @@ Because this is a standard Streamlit application without complex backend depende
 3. Click "New App", link your GitHub repo, select `app.py` as the main file, and click "Deploy". 
 4. Streamlit will automatically install dependencies from `requirements.txt` and host your app.
 
-### Option 2: Cloudflare Pages / GitHub Pages via `stlite` (Static Hosting)
+### Option 2: Cloudflare Pages / GitHub Pages (Static Hosting)
 
-If you strictly want to deploy to a static host without a python backend server (Cloudflare Pages, GitHub Pages, Vercel), you can use [stlite](https://github.com/whitphx/stlite) to run Streamlit completely within the browser using WebAssembly.
+The repository is now pre-configured to deploy easily to static web hosts utilizing WebAssembly via **`stlite`** (which runs Python inside the user's browser).
 
-To do this:
-1. Create an `index.html` file in your root folder with the following `stlite` wrapper:
-   ```html
-   <!DOCTYPE html>
-   <html>
-     <head>
-       <meta charset="UTF-8" />
-       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-       <title>Bible Note Taker</title>
-       <!-- stlite style -->
-       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.31.1/build/stlite.css" />
-     </head>
-     <body>
-       <div id="root"></div>
-       <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.31.1/build/stlite.js"></script>
-       <script>
-         stlite.mount(
-           {
-             requirements: ["requests", "fpdf2"],
-             entrypoint: "app.py",
-             files: {
-               "app.py": {
-                 url: "./app.py",
-               },
-             },
-           },
-           document.getElementById("root")
-         );
-       </script>
-     </body>
-   </html>
-   ```
-2. Upload `index.html`, `app.py`, and `requirements.txt` to Cloudflare Pages or GitHub Pages. 
-3. The browser will download Pyodide, install `requests` and `fpdf2`, and execute `app.py` directly on the client. *(Note: Loading might take a few seconds initially as it downloads the Python runtime).*
+**Deploying to Cloudflare Pages:**
+1. Log into your Cloudflare account and go to "Pages".
+2. Click **Connect to Git** and select your repository: `Bible_Note_Taker`.
+3. Set the **Framework preset** to `None` (or leave default).
+4. Leave the **Build command** and **Build output directory** empty (it defaults to your root folder which contains `index.html`).
+5. Click **Save and Deploy**. 
+
+Cloudflare will automatically deploy your site using the `index.html` file provided in the repository! Every time you push an update to `app.py`, it will automatically rebuild and be ready for your users.
+
+*(Note: On the first load, the browser will download Pyodide to run Python, which may take a few seconds before the application fully renders.)*
 
 ---
 
