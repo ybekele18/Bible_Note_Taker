@@ -1,4 +1,4 @@
-# bible_note_taker.py
+1# bible_note_taker.py
 
 def show_notes(notes):
     if not notes:
