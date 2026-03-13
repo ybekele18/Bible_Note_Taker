@@ -1,36 +1,39 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>Bible Note Taker</title>
-    <!-- stlite style -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.31.1/build/stlite.css" />
-  </head>
-  <body>
-    <!-- The designated space where Streamlit app will load -->
-    <div id="root"></div>
-    
-    <!-- Load stlite engine -->
-    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.31.1/build/stlite.js"></script>
-    <script>
-      // Initialize the app with dependencies and entrypoint
-      stlite.mount(
-        {
-          requirements: ["requests", "fpdf2"],
-          entrypoint: "app.py",
-          files: {
-            "app.py": {
-              url: "./app.py",
-            },
-            ".streamlit/config.toml": {
-                url: "./.streamlit/config.toml",
-            }
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Bible Note Taker</title>
+  <!-- stlite style -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.31.1/build/stlite.css" />
+</head>
+
+<body>
+  <!-- The designated space where Streamlit app will load -->
+  <div id="root"></div>
+
+  <!-- Load stlite engine -->
+  <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.31.1/build/stlite.js"></script>
+  <script>
+    // Initialize the app with dependencies and entrypoint
+    stlite.mount(
+      {
+        requirements: ["requests", "fpdf2"],
+        entrypoint: "app.py",
+        files: {
+          "app.py": {
+            url: "app.py",
           },
+          ".streamlit/config.toml": {
+            url: ".streamlit/config.toml",
+          }
         },
-        document.getElementById("root")
-      );
-    </script>
-  </body>
+      },
+      document.getElementById("root")
+    );
+  </script>
+</body>
+
 </html>
