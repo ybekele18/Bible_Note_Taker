@@ -17,18 +17,358 @@
   <!-- Load stlite engine -->
   <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.31.1/build/stlite.js"></script>
   <script>
-    // Initialize the app with dependencies and entrypoint
+    // Initialize the app with dependencies and inline code
     stlite.mount(
       {
         requirements: ["requests", "fpdf2"],
         entrypoint: "app.py",
         files: {
-          "app.py": {
-            url: "app.py",
-          },
-          ".streamlit/config.toml": {
-            url: ".streamlit/config.toml",
-          }
+          "app.py": `\
+import streamlit as st
+import requests
+from fpdf import FPDF
+import io
+
+# Setup Page Configuration
+st.set_page_config(
+    page_title="Bible Note Taker",
+    page_icon="📖",
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
+
+# Custom CSS for enhanced typography and dark mode aesthetic
+def load_css():
+    st.markdown("""
+    <style>
+        /* Import a nice modern font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap');
+        
+        /* Apply fonts */
+        html, body, [class*="css"] {
+            font-family: 'Inter', sans-serif !important;
+        }
+        
+        .verse-text {
+            font-family: 'Merriweather', serif !important;
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: #f0f0f0;
+            background-color: #1e1e1e;
+            padding: 2.5rem;
+            border-radius: 12px;
+            border-left: 5px solid #d4af37;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        
+        .verse-ref {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #d4af37;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .app-header {
+            text-align: center;
+            padding: 3rem 0 2rem 0;
+            background: linear-gradient(180deg, rgba(18,18,18,0) 0%, rgba(30,30,30,0.4) 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 3rem;
+            border-radius: 0 0 20px 20px;
+        }
+        
+        h1 {
+            font-weight: 300;
+            background: -webkit-linear-gradient(#ffffff, #a0a0a0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .stTextArea textarea {
+            background-color: #1a1a1a !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #333 !important;
+            border-radius: 10px !important;
+            padding: 1.2rem !important;
+            font-size: 1.05rem !important;
+            line-height: 1.6 !important;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        .stTextArea textarea:focus {
+            border-color: #d4af37 !important;
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3) !important;
+        }
+        
+        /* Styling for primary buttons */
+        div.stButton > button:first-child[data-testid="baseButton-primary"] {
+            background-color: #d4af37;
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        div.stButton > button:first-child[data-testid="baseButton-primary"]:hover {
+            background-color: #e5c35b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+        }
+        
+        /* Styling for secondary buttons */
+        div.stButton > button:first-child[data-testid="baseButton-secondary"] {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        div.stButton > button:first-child[data-testid="baseButton-secondary"]:hover {
+            background-color: #333;
+            border-color: #555;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            color: #fff;
+        }
+        
+        div.stDownloadButton > button {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        div.stDownloadButton > button:hover {
+            background-color: #333;
+            border-color: #555;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            color: #fff;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+# ---------------------------------------------------------
+# Database / Storage Stubs (Modular functions for future DB)
+# ---------------------------------------------------------
+
+def init_db_connection():
+    """Stub for initializing Supabase, SQLite, etc."""
+    # In the future, place Supabase init code here.
+    return None
+
+def save_note_to_db(user_id, reference, verse_text, note_content):
+    """Stub for saving a note to a database."""
+    # e.g., db.table('notes').insert({'user_id': user_id, ...})
+    # Returning True to simulate a successful save.
+    return True
+
+def get_notes_from_db(user_id):
+    """Stub for retrieving notes from a database."""
+    return []
+
+# ---------------------------------------------------------
+# API Integration
+# ---------------------------------------------------------
+
+def fetch_verse(reference):
+    """Fetch verse from bible-api.com"""
+    # URL encode the reference by replacing spaces with '%20' or let requests handle it
+    api_url = f"https://bible-api.com/{reference}"
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        data = response.json()
+        return {
+            "reference": data.get("reference", reference),
+            "text": data.get("text", "Verse text not found.").strip(),
+            "translation": data.get("translation_name", "Unknown Translation")
+        }
+    except requests.exceptions.HTTPError as e:
+        if response.status_code == 404:
+            st.error("Verse not found. Please check the reference format (e.g., 'John 3:16' or 'Genesis 1').")
+        else:
+            st.error(f"API HTTP Error: {e}")
+        return None
+    except Exception as e:
+        st.error(f"An error occurred while fetching the verse: {e}")
+        return None
+
+# ---------------------------------------------------------
+# Export Helpers
+# ---------------------------------------------------------
+
+def generate_markdown(reference, verse_text, note_content):
+    md = f"# {reference}\\n\\n"
+    md += f"> {verse_text}\\n\\n"
+    md += f"## Notes\\n\\n"
+    md += f"{note_content}\\n"
+    return md
+
+def generate_pdf(reference, verse_text, note_content):
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # Enable automatic page breaks
+    pdf.set_auto_page_break(auto=True, margin=15)
+    
+    # Title
+    pdf.set_font("helvetica", "B", 18)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 15, f"Bible Note: {reference}", new_x="LMARGIN", new_y="NEXT", align="C")
+    pdf.ln(5)
+    
+    # Verse Text Box background
+    pdf.set_fill_color(245, 245, 245)
+    
+    pdf.set_font("helvetica", "I", 14)
+    # Convert text carefully for standard fonts (latin-1)
+    safe_verse = verse_text.encode('latin-1', 'replace').decode('latin-1')
+    pdf.multi_cell(0, 8, f'"{safe_verse}"', fill=True, border=1)
+    pdf.ln(10)
+    
+    # Notes Header
+    pdf.set_font("helvetica", "B", 16)
+    pdf.cell(0, 10, "Reflections & Notes", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_draw_color(200, 200, 200)
+    pdf.line(pdf.get_x(), pdf.get_y(), pdf.get_x() + 190, pdf.get_y())
+    pdf.ln(5)
+    
+    # Notes Content
+    pdf.set_font("helvetica", "", 12)
+    safe_note = note_content.encode('latin-1', 'replace').decode('latin-1')
+    pdf.multi_cell(0, 7, safe_note)
+    
+    # Output bytearray for fpdf2
+    return bytes(pdf.output())
+
+# ---------------------------------------------------------
+# Main Application UI
+# ---------------------------------------------------------
+
+def main():
+    load_css()
+    
+    st.markdown('''
+        <div class="app-header">
+            <h1>📖 Bible Note Taker</h1>
+            <p style="color: #999; font-weight: 400; font-size: 1.1rem;">Study, reflect, and capture your insights in a beautiful environment.</p>
+        </div>
+    ''', unsafe_allow_html=True)
+    
+    # Initialize session state for verse data if it doesn't exist
+    if 'verse_data' not in st.session_state:
+        st.session_state.verse_data = None
+        
+    # Search Section
+    with st.container():
+        st.markdown("<h3 style='margin-bottom: 0.5rem; font-weight: 600;'>Search Passage</h3>", unsafe_allow_html=True)
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            search_query = st.text_input("Enter Bible Reference", placeholder="e.g., John 3:16, Romans 8:28, Genesis 1:1-5", label_visibility="collapsed")
+        with col2:
+            search_button = st.button("Fetch Passage", use_container_width=True, type="primary")
+
+    if search_button:
+        if search_query.strip():
+            with st.spinner("Fetching from API..."):
+                result = fetch_verse(search_query)
+                if result:
+                    st.session_state.verse_data = result
+        else:
+            st.warning("Please enter a valid Bible reference.")
+    
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.05); margin: 2rem 0;'>", unsafe_allow_html=True)
+
+    # Note taking section
+    if st.session_state.verse_data:
+        data = st.session_state.verse_data
+        
+        # Display Verse
+        st.markdown(f"""
+        <div class="verse-text">
+            <span class="verse-ref">{data['reference']} ({data['translation']})</span>
+            {data['text']}
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Display Notes Editor
+        st.markdown("<h3 style='margin-bottom: 1rem; font-weight: 600;'>📝 Your Reflections</h3>", unsafe_allow_html=True)
+        
+        note_content = st.text_area("Write your reflections here...", height=250, label_visibility="collapsed", placeholder="What stands out to you in this passage? How can you apply it?")
+        
+        # Action Buttons
+        st.markdown("<br>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("💾 Save to Cloud", use_container_width=True):
+                # Stub function
+                success = save_note_to_db("demo_user", data['reference'], data['text'], note_content)
+                if success:
+                    st.toast("Note securely saved! (Simulated)")
+        
+        with col2:
+            if note_content.strip():
+                md_content = generate_markdown(data['reference'], data['text'], note_content)
+                st.download_button(
+                    label="📄 Export as Markdown",
+                    data=md_content,
+                    file_name=f"{data['reference'].replace(':', '_').replace(' ', '_')}_notes.md",
+                    mime="text/markdown",
+                    use_container_width=True
+                )
+            else:
+                st.download_button(label="📄 Export as Markdown", data="", disabled=True, file_name="empty", use_container_width=True, help="Write some notes to export.")
+                
+        with col3:
+            if note_content.strip():
+                try:
+                    pdf_bytes = generate_pdf(data['reference'], data['text'], note_content)
+                    st.download_button(
+                        label="📑 Export as PDF",
+                        data=pdf_bytes,
+                        file_name=f"{data['reference'].replace(':', '_').replace(' ', '_')}_notes.pdf",
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+                except Exception as e:
+                    st.error(f"Failed to generate PDF: {e}")
+                    st.download_button(label="📑 Export as PDF", data="", disabled=True, file_name="error", use_container_width=True)
+            else:
+                st.download_button(label="📑 Export as PDF", data="", disabled=True, file_name="empty", use_container_width=True, help="Write some notes to export.")
+
+    else:
+        # Initial empty state
+        st.info("👈 Enter a Bible reference above to fetch a passage and start capturing notes.")
+        
+    # Footer
+    st.markdown("<br><br><br><p style='text-align: center; color: #555; font-size: 0.85rem;'>Built with Streamlit • UI by Antigravity • Data provided by api.bible / bible-api.com</p>", unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
+`,
+          ".streamlit/config.toml": `\
+[theme]
+primaryColor = "#d4af37"
+backgroundColor = "#121212"
+secondaryBackgroundColor = "#1e1e1e"
+textColor = "#e0e0e0"
+font = "sans serif"
+`
         },
       },
       document.getElementById("root")
